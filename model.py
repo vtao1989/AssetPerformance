@@ -98,7 +98,7 @@ for i in [0,1,2,3,4]:
 
     # prepare data
     Xs = pre_data(i)
-    X = Xs.drop(columns=['rating2','DiffRating'])
+    X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'DiffRating'])
     y = Xs['rating2']
 
     # model training
@@ -123,7 +123,7 @@ for i in [0,1,2,3,4]:
 
     # prepare data
     Xs = pre_data(i)
-    X = Xs.drop(columns=['rating2','DiffRating'])
+    X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'DiffRating'])
     y = Xs['DiffRating']
 
     # model training

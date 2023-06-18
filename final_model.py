@@ -35,7 +35,7 @@ rkf = RepeatedKFold(n_splits=5, n_repeats=10, random_state=2023)
 
 ## all-year PCR model
 Xs = pre_data(0)
-X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'class1', 'class2', 'DiffRating'])
+X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'DiffRating'])
 y = Xs['rating2']
 hgbm_fit = GridSearchCV(HistGradientBoostingRegressor(random_state=2023), hgbm_para, refit=refit, n_jobs = -1, cv=rkf)
 hgbm_fit.fit(X, y)
@@ -44,7 +44,7 @@ joblib.dump(hgbm_best_fit, 'all_year_rating_hgbm.sav')
 
 ## all-year PCR change model
 Xs = pre_data(0)
-X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'class1', 'class2', 'DiffRating'])
+X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'DiffRating'])
 y = Xs['DiffRating']
 hgbm_fit = GridSearchCV(HistGradientBoostingRegressor(random_state=2023), hgbm_para, refit=refit, n_jobs = -1, cv=rkf)
 hgbm_fit.fit(X, y)
