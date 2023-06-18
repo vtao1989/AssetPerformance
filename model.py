@@ -12,18 +12,14 @@ from sklearn.pipeline import Pipeline
 ## define scaling
 scaler = StandardScaler()
 
-start_time = time.time()
-
-now = time.localtime()
-print('Start at '+time.strftime("%H:%M:%S", now))
-
 ## all information for multiple years and multiple locations
 all_info = pd.read_csv('all_info.csv')
 
 ## change location and road class to dummy variables with one hot encoding
 all_info = pd.get_dummies(all_info, columns = ['location', 'roadclass'])
 
-
+## select observations for all-year, one-year, two-year, three-year, and four-year models
+## n=0 means all-year observations
 def pre_data(n):
     X=all_info
     if(n==0):
@@ -38,6 +34,7 @@ def pre_data(n):
 
     return(Xs)
 
+## apply repeated nested cross validation to tune and select models
 def train_model(X, y, n):
 
     # training parameters
@@ -92,30 +89,7 @@ def train_model(X, y, n):
 
     return(cv_r)
 
-# for i in [0,1,2,3,4]:
-
-#     print('Session: '+str(i))
-
-#     n=10
-
-#     # prepare data
-#     Xs = pre_data(i)
-#     X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'class1', 'class2', 'DiffRating'])
-#     y = Xs['rating2']
-
-#     # model training
-#     cv_r = train_model(X, y, n)
-
-#     ## save results
-#     cv_result = pd.DataFrame({'value': cv_r,
-#                             'model': (['lm']*3 + ['rf']*3 + ['hgbm']*3 + ['ann']*3)*n,
-#                             'eval': ['r2', 'mae', 'rmse']*n*4,
-#                             'year':i})
-#     if(i==0):
-#         cv_result.to_csv('rating_cv_result.csv', index=False)
-#     else:
-#         cv_result.to_csv('rating_cv_result.csv', mode='a', header=False, index=False)
-
+## PCR models
 for i in [0,1,2,3,4]:
 
     print('Session: '+str(i))
@@ -124,7 +98,32 @@ for i in [0,1,2,3,4]:
 
     # prepare data
     Xs = pre_data(i)
-    X = Xs.drop(columns=['segID', 'date1', 'date2', 'rating2', 'class1', 'class2', 'DiffRating'])
+    X = Xs.drop(columns=['rating2','DiffRating'])
+    y = Xs['rating2']
+
+    # model training
+    cv_r = train_model(X, y, n)
+
+    ## save results
+    cv_result = pd.DataFrame({'value': cv_r,
+                            'model': (['lm']*3 + ['rf']*3 + ['hgbm']*3 + ['ann']*3)*n,
+                            'eval': ['r2', 'mae', 'rmse']*n*4,
+                            'year':i})
+    if(i==0):
+        cv_result.to_csv('rating_cv_result.csv', index=False)
+    else:
+        cv_result.to_csv('rating_cv_result.csv', mode='a', header=False, index=False)
+
+## PCR change models
+for i in [0,1,2,3,4]:
+
+    print('Session: '+str(i))
+
+    n=10
+
+    # prepare data
+    Xs = pre_data(i)
+    X = Xs.drop(columns=['rating2','DiffRating'])
     y = Xs['DiffRating']
 
     # model training
@@ -139,11 +138,3 @@ for i in [0,1,2,3,4]:
         cv_result.to_csv('rating_diff_cv_result.csv', index=False)
     else:
         cv_result.to_csv('rating_diff_cv_result.csv', mode='a', header=False, index=False)
-
-end_time = time.time()
-elapsed_time = round((end_time-start_time)/3600, 2)
-print('Execution time:', elapsed_time, 'hours')
-
-import sendmail
-message = 'The task is finished!\n'+'Execution time:'+str(elapsed_time)+'hours'
-sendmail.send_email(message)
